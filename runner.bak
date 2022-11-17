@@ -100,6 +100,7 @@
 ; (print-exp (var-exp a)) -> output: ***screen 1
       ((equal? (car parsed-code) 'print-exp)
        (run-print-exp (cadr parsed-code) env))
+
       (else (run-neo-parsed-code
              (cadr parsed-code) 
              (push_scope_to_env (cadr (cadr (cadr parsed-code)))
@@ -146,13 +147,10 @@
       )
     )
   )
-(define run-print-exp
+(define rup-print-exp
   (lambda (parsed-code env)
     (display (string-append "***screen***" (number->string
-                                            (run-neo-parsed-code parsed-code env))))
-    )
-  )
-  
+                                            (run-neo-parsed-code (pared-code) env))))))
     
 
 (define run-let-exp

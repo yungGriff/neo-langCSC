@@ -69,7 +69,36 @@
       )
     )
   )
-
+(define update-scope
+  (lambda (varname value scope)
+    (letrec (
+           (check-varname-in-pair (lambda (pair) (equal? (car pair) varname)))
+           (check-varname-in-scope
+            (lambda (curr_scope)
+              (cond
+                ((null? curr_scope) #false)
+                (else
+                 (if (check-varname-in-pair (car curr_scope)) #true
+                     (check-varname-in-scope (cdr curr_scope))
+                     )
+                 )
+                )
+              )
+            )
+           )
+      (cond
+        ((null? scope) (cons (list varname value) scope))
+        ((equal? varname (caar scope)) (cons (list varname value) (cdr scope)))
+        (else
+         (if (check-varname-in-scope scope) 
+             (cons (car scope) (update-scope varname value (cdr scope)))
+             (cons (list varname value) scope)
+             )
+         )
+        )
+      )
+    )
+  )
 ;add name value pairs to the local scope
 (define extend_local_scope
   (lambda (list-of-varname list-of-value env)
@@ -108,7 +137,6 @@
       ;(app-exp (func-exp (params (x)) (body-exp (let-exp ((a 1) (b 2) (c 3)) (math-exp + (var-exp a) (var-exp b))))) ((num-exp 5)))
       ((equal? (car parsed-code) 'let-exp)
        (run-let-exp parsed-code env))
-      ;(print-exp (var-exp a)) -> output: **screen** 1
       ((equal? (car parsed-code) 'print-exp)
        (run-print-exp (cadr parsed-code) env))
       ;(assign-exp a (num-exp 8))
@@ -120,13 +148,16 @@
       ((equal? (car parsed-code) 'block-exp)
        ;(displayln parsed-code))
        (run-block-exp (cdr parsed-code) env))
+      ;(while-exp (bool < i (num-exp 10))(block-exp (assign i (math + i 1))))
+      ((equal? (car parsed-code) 'while-exp)
+       (run-while-exp (cadr parsed-code) (caddr parsed-code) env))
       (else (run-neo-parsed-code
              (cadr parsed-code) ;function expression
              (push_scope_to_env (cadr (cadr (cadr parsed-code)))
                                 (map (lambda (exp) (run-neo-parsed-code exp env)) (caddr parsed-code))
                                 env
                                 )
-             );environment scope update
+             )
          )            
       )
     ) 
@@ -232,6 +263,17 @@ env)))
 	)
 )
 )
+
+(define run-while-exp
+  (lambda (bool_exp block_exp env)
+    (let* ((new_block_exp (append block_exp (list (list 'while-exp bool_exp block_exp)))))
+      (if (run-neo-parsed-code bool_exp env)
+          (run-neo-parsed-code new_block_exp env)
+          '()
+          )
+     )
+    )
+  )
     
 
 (define cascade-update-env

@@ -14,7 +14,7 @@
 ;(define sample-code '(print a))
 
 
-(define sample-code '(block (print a) (assign x 8) (assign y (math * x 2)) (print y) (assign z (math + b y)) (print z)))
-;(displayln (neo-parser sample-code))
+(define sample-code '(block (assign i 0) (while (bool < i 10) (block (assign a (math + i 1)) (assign i a) (print i)))))
+(displayln (neo-parser sample-code))
 (define parsed-neo-code (neo-parser sample-code))
 (run-neo-parsed-code parsed-neo-code env)
